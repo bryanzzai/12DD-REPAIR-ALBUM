@@ -119,7 +119,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf delivery
+          rm -rf delivery/The-12-Day-Dancer-iPadOS-SIDESTORE-LITE delivery/The-12-Day-Dancer-iPadOS-SIDESTORE-LITE-Xcode15.2-READY.zip
           ROOT=delivery/The-12-Day-Dancer-iPadOS-SIDESTORE-LITE
           mkdir -p "$ROOT"
 
