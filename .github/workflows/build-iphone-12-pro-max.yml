@@ -86,6 +86,11 @@ jobs:
           test "$(grep -c 'dies-apri__audio__' App/Sources/Catalog.generated.swift)" = 24
           test "$(grep -c 'dies-apri__art__' App/Sources/Catalog.generated.swift)" = 24
 
+          mkdir -p ci-resources
+          cp "$RUNNER_TEMP/bryanmackayne-source/assets/bulgarian-ballerina.png" \
+            ci-resources/facade__background__bulgarian-ballerina.png
+          test -s ci-resources/facade__background__bulgarian-ballerina.png
+
       - name: Generate Xcode 15 compatible project
         run: |
           xcodegen generate
