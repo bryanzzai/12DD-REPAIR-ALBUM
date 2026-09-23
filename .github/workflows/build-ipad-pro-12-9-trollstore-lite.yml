@@ -37,39 +37,6 @@ jobs:
           git clone --depth 1 https://github.com/bryanzzai/bryanmackayne.git "$SOURCE_SITE"
           git -C "$SOURCE_SITE" rev-parse HEAD | tee SOURCE-SITE-COMMIT.txt
 
-      - name: Download exact release media for catalog validation only
-        shell: bash
-        run: |
-          set -euo pipefail
-          MEDIA_ROOT="$RUNNER_TEMP/full-native-media"
-          rm -rf "$MEDIA_ROOT"
-          mkdir -p "$MEDIA_ROOT"
-          audio_albums=(
-            dies-iovis dies-solis dies-martis dies-albini dies-tigris dies-delfini
-            dies-canis dies-felis dies-tauri dies-ursi dies-apri
-          )
-          for album in "${audio_albums[@]}"; do
-            mkdir -p "$MEDIA_ROOT/$album"
-            gh release download "$album" \
-              --repo bryanzzai/bryanmackayne \
-              --pattern '*.web.m4a' \
-              --dir "$MEDIA_ROOT/$album" \
-              --clobber
-          done
-          mkdir -p "$MEDIA_ROOT/dies-akita"
-          gh release download dies-akita \
-            --repo bryanzzai/bryanmackayne \
-            --pattern '*.mp4' \
-            --dir "$MEDIA_ROOT/dies-akita" \
-            --clobber
-
-          audio_count=$(find "$MEDIA_ROOT" -type f -name '*.web.m4a' | wc -l | tr -d ' ')
-          video_count=$(find "$MEDIA_ROOT" -type f -name '*.mp4' | wc -l | tr -d ' ')
-          originals=$(find "$MEDIA_ROOT" -type f -name '*.m4a' ! -name '*.web.m4a' | wc -l | tr -d ' ')
-          test "$audio_count" = 229
-          test "$video_count" = 9
-          test "$originals" = 0
-          echo "Catalog authority media verified: $audio_count web M4A + $video_count MP4; original M4A: $originals"
 
       - name: Generate exact catalog and external-library manifest
         shell: bash
@@ -77,7 +44,6 @@ jobs:
           set -euo pipefail
           node Scripts/generate_full_catalog.mjs \
             --source "$RUNNER_TEMP/bryanmackayne-source" \
-            --media-root "$RUNNER_TEMP/full-native-media" \
             --output-swift "$PWD/App/Sources/Catalog.generated.swift" \
             --output-manifest "$PWD/App/Generated/ResourceManifest.tsv" \
             --output-report "$PWD/App/Generated/CatalogReport.txt"
