@@ -20,6 +20,105 @@ const EXPECTED = {
   'dies-akita': 9,
 };
 
+const DIES_APRI_REPLACEMENT_TRACKS = [
+  {
+    "title": "Bargain in Ruins [ IV ]",
+    "file": "Bargain in Ruins [ IV ].m4a"
+  },
+  {
+    "title": "Bargain in Ruins [ V ] 110 BPM",
+    "file": "Bargain in Ruins [ V ] 110 BPM.m4a"
+  },
+  {
+    "title": "God Only Knows [ I ]",
+    "file": "God Only Knows [ I ].m4a"
+  },
+  {
+    "title": "God Only Knows [ II ]",
+    "file": "God Only Knows [ II ].m4a"
+  },
+  {
+    "title": "God Only Knows [ III ]",
+    "file": "God Only Knows [ III ].m4a"
+  },
+  {
+    "title": "God Only Knows [ IV ]",
+    "file": "God Only Knows [ IV ].m4a"
+  },
+  {
+    "title": "God Only Knows [ V ]",
+    "file": "God Only Knows [ V ].m4a"
+  },
+  {
+    "title": "God Only Knows [ VI ]",
+    "file": "God Only Knows [ VI ].m4a"
+  },
+  {
+    "title": "God Only Knows [ VII ]",
+    "file": "God Only Knows [ VII ].m4a"
+  },
+  {
+    "title": "Bachata Ballad",
+    "file": "Bachata Ballad.m4a"
+  },
+  {
+    "title": "Bargain in Ruins [ I ] 110 BPM",
+    "file": "Bargain in Ruins [ I ] 110 BPM.m4a"
+  },
+  {
+    "title": "Bargain in Ruins [ I ]",
+    "file": "Bargain in Ruins [ I ].m4a"
+  },
+  {
+    "title": "Bargain in Ruins [ II ]",
+    "file": "Bargain in Ruins [ II ].m4a"
+  },
+  {
+    "title": "Bargain in Ruins [ III ]",
+    "file": "Bargain in Ruins [ III ].m4a"
+  },
+  {
+    "title": "Midnight in Blue [ II ]",
+    "file": "Midnight in Blue [ II ].m4a"
+  },
+  {
+    "title": "Midnight in Blue [ III ]",
+    "file": "Midnight in Blue [ III ].m4a"
+  },
+  {
+    "title": "Midnight in Blue [ IV ]",
+    "file": "Midnight in Blue [ IV ].m4a"
+  },
+  {
+    "title": "Warm Echoes [ I ]",
+    "file": "Warm Echoes [ I ].m4a"
+  },
+  {
+    "title": "Warm Echoes [ II ]",
+    "file": "Warm Echoes [ II ].m4a"
+  },
+  {
+    "title": "Warm Static [ I ]",
+    "file": "Warm Static [ I ].m4a"
+  },
+  {
+    "title": "Warm Static [ II ]",
+    "file": "Warm Static [ II ].m4a"
+  },
+  {
+    "title": "House Ballad [ I ]",
+    "file": "House Ballad [ I ].m4a"
+  },
+  {
+    "title": "House Ballad [ II ]",
+    "file": "House Ballad [ II ].m4a"
+  },
+  {
+    "title": "Midnight in Blue [ I ]",
+    "file": "Midnight in Blue [ I ].m4a"
+  }
+];
+
 const EXPECTED_ORDER = [
   'dies-iovis', 'dies-solis', 'dies-martis', 'dies-albini',
   'dies-tigris', 'dies-delfini', 'dies-canis', 'dies-felis',
@@ -169,6 +268,13 @@ const rootHtml = fs.readFileSync(path.join(sourceRoot, 'index.html'), 'utf8');
 const landingAlbums = parseLanding(rootHtml);
 const albums = landingAlbums.map(a => parseAlbumPage(sourceRoot, a));
 
+const diesApri = albums.find(album => album.slug === 'dies-apri');
+if (!diesApri || diesApri.kind !== 'audio' || diesApri.tracks.length === 0) {
+  throw new Error('Dies Apri source album is unavailable for replacement.');
+}
+const diesApriArtwork = diesApri.tracks[0].art;
+diesApri.tracks = DIES_APRI_REPLACEMENT_TRACKS.map(track => ({ ...track, art: diesApriArtwork }));
+
 const resources = new Map();
 function addResource(kind, album, bundle, url, localPath) {
   if (resources.has(bundle)) {
@@ -221,9 +327,9 @@ for (const album of albums) {
   }
 }
 
-if (audioCount !== 229) throw new Error(`Audio total ${audioCount}, expected 229`);
+if (audioCount !== 245) throw new Error(`Audio total ${audioCount}, expected 229`);
 if (videoCount !== 9) throw new Error(`Video total ${videoCount}, expected 9`);
-if (artworkCount !== 229) throw new Error(`Artwork total ${artworkCount}, expected 229`);
+if (artworkCount !== 245) throw new Error(`Artwork total ${artworkCount}, expected 229`);
 
 fs.mkdirSync(path.dirname(outputSwift), { recursive: true });
 fs.mkdirSync(path.dirname(outputManifest), { recursive: true });
