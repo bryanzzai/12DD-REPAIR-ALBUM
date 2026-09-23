@@ -78,7 +78,6 @@ jobs:
           node Scripts/generate_full_catalog.mjs \
             --source "$RUNNER_TEMP/bryanmackayne-source" \
             --media-root "$RUNNER_TEMP/full-native-media" \
-            --ci-resource-dir "$PWD/ci-resources" \
             --output-swift "$PWD/App/Sources/Catalog.generated.swift" \
             --output-manifest "$PWD/App/Generated/ResourceManifest.tsv" \
             --output-report "$PWD/App/Generated/CatalogReport.txt"
@@ -95,7 +94,6 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          THE12_PRESTAGED_RESOURCES="$PWD/ci-resources" \
           xcodebuild \
             -project The12DayDancer.xcodeproj \
             -scheme The12DayDancer \
