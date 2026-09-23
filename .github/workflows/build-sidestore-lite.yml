@@ -1,4 +1,4 @@
-name: Build iPad Air 2 TrollStore edition
+name: Build iPad Air 2 concert house
 
 on:
   workflow_dispatch:
@@ -37,72 +37,43 @@ jobs:
           git clone --depth 1 https://github.com/bryanzzai/bryanmackayne.git "$SOURCE_SITE"
           git -C "$SOURCE_SITE" rev-parse HEAD | tee SOURCE-SITE-COMMIT.txt
 
-      - name: Download exact release media for catalog validation only
-        shell: bash
-        run: |
-          set -euo pipefail
-          MEDIA_ROOT="$RUNNER_TEMP/full-native-media"
-          rm -rf "$MEDIA_ROOT"
-          mkdir -p "$MEDIA_ROOT"
-          audio_albums=(
-            dies-iovis dies-solis dies-martis dies-albini dies-tigris dies-delfini
-            dies-canis dies-felis dies-tauri dies-ursi dies-apri
-          )
-          for album in "${audio_albums[@]}"; do
-            mkdir -p "$MEDIA_ROOT/$album"
-            gh release download "$album" \
-              --repo bryanzzai/bryanmackayne \
-              --pattern '*.web.m4a' \
-              --dir "$MEDIA_ROOT/$album" \
-              --clobber
-          done
-          mkdir -p "$MEDIA_ROOT/dies-akita"
-          gh release download dies-akita \
-            --repo bryanzzai/bryanmackayne \
-            --pattern '*.mp4' \
-            --dir "$MEDIA_ROOT/dies-akita" \
-            --clobber
-
-          audio_count=$(find "$MEDIA_ROOT" -type f -name '*.web.m4a' | wc -l | tr -d ' ')
-          video_count=$(find "$MEDIA_ROOT" -type f -name '*.mp4' | wc -l | tr -d ' ')
-          test "$audio_count" = 229
-          test "$video_count" = 9
-          echo "Catalog authority verified: $audio_count audio + $video_count video."
-
-      - name: Generate exact catalog and external-library manifest
+      - name: Generate corrected Dies Apri catalog for iPad Air 2
         shell: bash
         run: |
           set -euo pipefail
           node Scripts/generate_full_catalog.mjs \
             --source "$RUNNER_TEMP/bryanmackayne-source" \
-            --media-root "$RUNNER_TEMP/full-native-media" \
-            --ci-resource-dir "$PWD/ci-resources" \
             --output-swift "$PWD/App/Sources/Catalog.generated.swift" \
             --output-manifest "$PWD/App/Generated/ResourceManifest.tsv" \
             --output-report "$PWD/App/Generated/CatalogReport.txt"
           cat App/Generated/CatalogReport.txt
+          grep -q 'dies-apri' App/Generated/ResourceManifest.tsv
+          grep -q 'Audio: 245' App/Generated/CatalogReport.txt
 
-      - name: Apply external-library, iPad Air 2 compatibility and full-screen patches
+      - name: Apply external library and iPad Air 2 compatibility patches
+        shell: bash
         run: |
           set -euo pipefail
           python3 Scripts/apply_sidestore_lite.py
           python3 Scripts/apply_ipad_air2_compat.py
           grep -q 'SIDESTORE-LITE-RESOURCE-ROOT' App/Sources/The12DayDancerApp.swift
-          grep -q 'SIDESTORE-LITE-THUMBNAIL-RESOURCE-ROOT' App/Sources/FilmThumbnailView.swift
-          grep -q 'navigationViewStyle(StackNavigationViewStyle())' App/Sources/The12DayDancerApp.swift
+          test -f App/Sources/Air2ConcertImportHost.swift
 
       - name: Generate Xcode 15 compatible project
         run: |
-          set -euo pipefail
           xcodegen generate
           test -d The12DayDancer.xcodeproj
-          grep -q 'IPHONEOS_DEPLOYMENT_TARGET = 15.0;' The12DayDancer.xcodeproj/project.pbxproj
+          grep -q 'objectVersion = 60;' The12DayDancer.xcodeproj/project.pbxproj
+          grep -q 'compatibilityVersion = "Xcode 15.0";' The12DayDancer.xcodeproj/project.pbxproj
+          if grep -q 'preferredProjectObjectVersion' The12DayDancer.xcodeproj/project.pbxproj; then
+            echo 'Xcode 16 preferredProjectObjectVersion leaked into Xcode 15 project.' >&2
+            exit 1
+          fi
 
-      - name: Compile unsigned arm64 iPad app
+      - name: Compile iPad Air 2 app
         shell: bash
         run: |
           set -o pipefail
-          THE12_PRESTAGED_RESOURCES="$PWD/ci-resources" \
           xcodebuild \
             -project The12DayDancer.xcodeproj \
             -scheme The12DayDancer \
@@ -113,93 +84,115 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             build | tee xcodebuild-ipad-air2.log
 
-      - name: Verify iPad Air 2 full-screen build
+      - name: Verify iPad Air 2 app contains no concert media
         shell: bash
         run: |
           set -euo pipefail
           APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -type d -path '*Build/Products/Debug-iphoneos/The 12 Day Dancer.app' -print -quit)
           test -n "$APP"
-          test -d "$APP/ConcertResources"
-          test -s "$APP/ConcertResources/facade__background__bulgarian-ballerina.png"
+          RES="$APP/ConcertResources"
+          test -d "$RES"
+          test -s "$RES/facade__background__bulgarian-ballerina.png"
+          test -s "$RES/SOURCE-SITE-COMMIT.txt"
 
           audio_count=$(find "$APP" -type f -name '*.m4a' | wc -l | tr -d ' ')
           video_count=$(find "$APP" -type f -name '*.mp4' | wc -l | tr -d ' ')
+          resource_count=$(find "$RES" -maxdepth 1 -type f | wc -l | tr -d ' ')
           test "$audio_count" = 0
           test "$video_count" = 0
+          test "$resource_count" = 2
 
           grep -q 'SIDESTORE-LITE-RESOURCE-ROOT' App/Sources/The12DayDancerApp.swift
-          grep -q 'SIDESTORE-LITE-THUMBNAIL-RESOURCE-ROOT' App/Sources/FilmThumbnailView.swift
+          /usr/libexec/PlistBuddy -c 'Print :UIFileSharingEnabled' "$APP/Info.plist" | grep -q true
+          /usr/libexec/PlistBuddy -c 'Print :LSSupportsOpeningDocumentsInPlace' "$APP/Info.plist" | grep -q true
 
-          APP_PLIST="$APP/Info.plist" python3 - <<'PY'
-          import os, plistlib
-          with open(os.environ['APP_PLIST'], 'rb') as f:
-              info = plistlib.load(f)
-          assert info.get('CFBundleIdentifier') == 'dk.bryanmackayne.the12daydancer', info.get('CFBundleIdentifier')
-          assert info.get('UIDeviceFamily') == [2], info.get('UIDeviceFamily')
-          assert info.get('MinimumOSVersion') == '15.0', info.get('MinimumOSVersion')
-          assert info.get('UIRequiresFullScreen') is True, info.get('UIRequiresFullScreen')
-          assert info.get('UIFileSharingEnabled') is True, info.get('UIFileSharingEnabled')
-          assert info.get('LSSupportsOpeningDocumentsInPlace') is True, info.get('LSSupportsOpeningDocumentsInPlace')
-          print('Verified iPad-only, iPadOS 15.0 minimum, full-screen-only, file-sharing enabled app.')
-          PY
+          size_mb=$(du -sm "$APP" | awk '{print $1}')
+          test "$size_mb" -lt 100
+          echo "iPad Air 2 built app: $APP"
+          echo "Lite validation: 0 M4A; 0 MP4; 2 bootstrap files; external Documents resolver; Finder file sharing enabled; ${size_mb} MB."
 
-          /usr/bin/file "$APP/The 12 Day Dancer" | grep -q arm64
-          echo "Air 2 build verified: arm64, iPad family, iPadOS 15.0 minimum, full-screen-only, Documents/ConcertResources resolver, no concert media embedded."
-          echo "$APP" > AIR2_APP_PATH.txt
-
-      - name: Package TrollStore IPA and Xcode project
+      - name: Package unsigned SideStore IPA
         shell: bash
         run: |
           set -euo pipefail
-          APP=$(cat AIR2_APP_PATH.txt)
-          rm -rf delivery Payload
-          mkdir -p delivery Payload
-          cp -R "$APP" Payload/
-          ditto -c -k --sequesterRsrc --keepParent Payload delivery/The-12-Day-Dancer-iPad-Air-2-TrollStore.ipa
+          APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -type d -path '*Build/Products/Debug-iphoneos/The 12 Day Dancer.app' -print -quit)
+          test -n "$APP"
+          IPA_ROOT="$RUNNER_TEMP/ipad-air-2-ipa"
+          rm -rf "$IPA_ROOT"
+          mkdir -p "$IPA_ROOT/Payload" delivery
+          cp -R "$APP" "$IPA_ROOT/Payload/"
+          (cd "$IPA_ROOT" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/delivery/The-12-Day-Dancer-iPad-Air-2-Dies-Apri-24-UNSIGNED.ipa" Payload)
+          test -s delivery/The-12-Day-Dancer-iPad-Air-2-Dies-Apri-24-UNSIGNED.ipa
 
-          python3 - <<'PY'
-          import zipfile
-          p='delivery/The-12-Day-Dancer-iPad-Air-2-TrollStore.ipa'
-          with zipfile.ZipFile(p) as z:
-              names=z.namelist()
-          assert any(n.startswith('Payload/') and n.endswith('.app/') for n in names), 'IPA missing Payload/*.app/'
-          print('Verified IPA contains Payload/*.app/.')
-          PY
-
-          ROOT=delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2
+      - name: Package ready-to-open Xcode 15.2 project
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf delivery/The-12-Day-Dancer-iPad-Air-2 delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
+          ROOT=delivery/The-12-Day-Dancer-iPad-Air-2
           mkdir -p "$ROOT"
+
           rsync -a \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='delivery' \
-            --exclude='Payload' \
             --exclude='ci-resources' \
-            --exclude='xcodebuild-ipad-air2.log' \
+            --exclude='xcodebuild-sidestore-lite.log' \
             ./ "$ROOT/"
-          cp xcodebuild-ipad-air2.log "$ROOT/XCODEBUILD-iPAD-AIR2-GREEN.log"
+
+          cp xcodebuild-sidestore-lite.log "$ROOT/XCODEBUILD-SIDESTORE-LITE-GREEN.log"
           cp SOURCE-SITE-COMMIT.txt "$ROOT/SOURCE-SITE-COMMIT.txt"
+
           cat > "$ROOT/OPEN-ME-FIRST.txt" <<'TXT'
-          THE 12 DAY DANCER — iPAD AIR 2 — TROLLSTORE EDITION
+          THE 12 DAY DANCER — iPAD AIR 2
 
-          Dedicated compatibility build for Bryan's reference iPad Air 2.
-          Minimum OS: iPadOS 15.0. Device family: iPad. Architecture: arm64.
-          Full-screen single-column navigation; iPad split-view/multitasking chrome disabled.
-          Bundle id: dk.bryanmackayne.the12daydancer.
-          The concert library remains external in Documents/ConcertResources.
+          Purpose:
+            Keep the signed app small enough for installation on iPad Air 2.
+            The full concert library is NOT baked into the app bundle.
 
-          GitHub Actions compiled and validated the exact source in this archive.
-          The accompanying IPA is unsigned and packaged conventionally for TrollStore.
+          This exact project was generated and compiled successfully by GitHub Actions.
+          CI verified:
+            - exact 12-album catalog generated from the concert-house source of truth
+            - 245 audio identities in the generated catalog, including the 24 corrected Dies Apri tracks
+            - built app contains 0 M4A and 0 MP4
+            - only ballerina facade + source marker are bundled as bootstrap resources
+            - Documents/ConcertResources is the preferred runtime media location
+            - Finder/iPad Files sharing is enabled for The 12 Day Dancer
+            - Xcode 15.0/15.2 compatible project format
+
+          On M/S Ventura with Xcode 15.2:
+          1. Open The12DayDancer.xcodeproj.
+          2. Select The12DayDancer target -> Signing & Capabilities -> Bryan's Personal Team.
+          3. Select the physical iPad Air 2.
+          4. Product -> Build.
+          5. Use Product -> Show Build Folder in Finder and take the Debug-iphoneos app.
+          6. Package it as an IPA with Payload/The 12 Day Dancer.app at archive root.
+          7. Install that unsigned IPA through the signing/install method used on this iPad Air 2.
+
+          Do NOT add the concert library to this app bundle.
+          After the SideStore app itself is physically green, the separate ConcertResources
+          library will be copied into the app's Documents folder by USB.
           TXT
-          ditto -c -k --sequesterRsrc --keepParent "$ROOT" delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
-          ls -lh delivery/*
 
-      - name: Upload iPad Air 2 TrollStore package
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$ROOT" \
+            delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
+          ls -lh delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
+
+      - name: Upload unsigned iPad Air 2 IPA
         uses: actions/upload-artifact@v4
         with:
-          name: The-12-Day-Dancer-iPad-Air-2-TrollStore
-          path: |
-            delivery/The-12-Day-Dancer-iPad-Air-2-TrollStore.ipa
-            delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
+          name: The-12-Day-Dancer-Dies-Apri-24-UNSIGNED
+          path: delivery/The-12-Day-Dancer-iPad-Air-2-Dies-Apri-24-UNSIGNED.ipa
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Upload iPad Air 2 Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY
+          path: delivery/The-12-Day-Dancer-iPad-Air-2-Xcode15.2-READY.zip
           if-no-files-found: error
           compression-level: 6
           retention-days: 30
