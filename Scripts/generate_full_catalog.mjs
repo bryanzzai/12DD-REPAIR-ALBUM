@@ -23,99 +23,99 @@ const EXPECTED = {
 const DIES_APRI_REPLACEMENT_TRACKS = [
   {
     "title": "Bargain in Ruins [ IV ]",
-    "file": "Bargain in Ruins [ IV ].m4a"
+    "file": "Bargain in Ruins [ IV ].web.m4a"
   },
   {
     "title": "Bargain in Ruins [ V ] 110 BPM",
-    "file": "Bargain in Ruins [ V ] 110 BPM.m4a"
+    "file": "Bargain in Ruins [ V ] 110 BPM.web.m4a"
   },
   {
     "title": "God Only Knows [ I ]",
-    "file": "God Only Knows [ I ].m4a"
+    "file": "God Only Knows [ I ].web.m4a"
   },
   {
     "title": "God Only Knows [ II ]",
-    "file": "God Only Knows [ II ].m4a"
+    "file": "God Only Knows [ II ].web.m4a"
   },
   {
     "title": "God Only Knows [ III ]",
-    "file": "God Only Knows [ III ].m4a"
+    "file": "God Only Knows [ III ].web.m4a"
   },
   {
     "title": "God Only Knows [ IV ]",
-    "file": "God Only Knows [ IV ].m4a"
+    "file": "God Only Knows [ IV ].web.m4a"
   },
   {
     "title": "God Only Knows [ V ]",
-    "file": "God Only Knows [ V ].m4a"
+    "file": "God Only Knows [ V ].web.m4a"
   },
   {
     "title": "God Only Knows [ VI ]",
-    "file": "God Only Knows [ VI ].m4a"
+    "file": "God Only Knows [ VI ].web.m4a"
   },
   {
     "title": "God Only Knows [ VII ]",
-    "file": "God Only Knows [ VII ].m4a"
+    "file": "God Only Knows [ VII ].web.m4a"
   },
   {
     "title": "Bachata Ballad",
-    "file": "Bachata Ballad.m4a"
+    "file": "Bachata Ballad.web.m4a"
   },
   {
     "title": "Bargain in Ruins [ I ] 110 BPM",
-    "file": "Bargain in Ruins [ I ] 110 BPM.m4a"
+    "file": "Bargain in Ruins [ I ] 110 BPM.web.m4a"
   },
   {
     "title": "Bargain in Ruins [ I ]",
-    "file": "Bargain in Ruins [ I ].m4a"
+    "file": "Bargain in Ruins [ I ].web.m4a"
   },
   {
     "title": "Bargain in Ruins [ II ]",
-    "file": "Bargain in Ruins [ II ].m4a"
+    "file": "Bargain in Ruins [ II ].web.m4a"
   },
   {
     "title": "Bargain in Ruins [ III ]",
-    "file": "Bargain in Ruins [ III ].m4a"
+    "file": "Bargain in Ruins [ III ].web.m4a"
   },
   {
     "title": "Midnight in Blue [ II ]",
-    "file": "Midnight in Blue [ II ].m4a"
+    "file": "Midnight in Blue [ II ].web.m4a"
   },
   {
     "title": "Midnight in Blue [ III ]",
-    "file": "Midnight in Blue [ III ].m4a"
+    "file": "Midnight in Blue [ III ].web.m4a"
   },
   {
     "title": "Midnight in Blue [ IV ]",
-    "file": "Midnight in Blue [ IV ].m4a"
+    "file": "Midnight in Blue [ IV ].web.m4a"
   },
   {
     "title": "Warm Echoes [ I ]",
-    "file": "Warm Echoes [ I ].m4a"
+    "file": "Warm Echoes [ I ].web.m4a"
   },
   {
     "title": "Warm Echoes [ II ]",
-    "file": "Warm Echoes [ II ].m4a"
+    "file": "Warm Echoes [ II ].web.m4a"
   },
   {
     "title": "Warm Static [ I ]",
-    "file": "Warm Static [ I ].m4a"
+    "file": "Warm Static [ I ].web.m4a"
   },
   {
     "title": "Warm Static [ II ]",
-    "file": "Warm Static [ II ].m4a"
+    "file": "Warm Static [ II ].web.m4a"
   },
   {
     "title": "House Ballad [ I ]",
-    "file": "House Ballad [ I ].m4a"
+    "file": "House Ballad [ I ].web.m4a"
   },
   {
     "title": "House Ballad [ II ]",
-    "file": "House Ballad [ II ].m4a"
+    "file": "House Ballad [ II ].web.m4a"
   },
   {
     "title": "Midnight in Blue [ I ]",
-    "file": "Midnight in Blue [ I ].m4a"
+    "file": "Midnight in Blue [ I ].web.m4a"
   }
 ];
 
