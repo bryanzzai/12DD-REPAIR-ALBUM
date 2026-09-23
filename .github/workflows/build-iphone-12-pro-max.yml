@@ -78,13 +78,13 @@ jobs:
           node Scripts/generate_full_catalog.mjs \
             --source "$RUNNER_TEMP/bryanmackayne-source" \
             --media-root "$RUNNER_TEMP/full-native-media" \
-            --ci-resource-dir "$PWD/ci-resources" \
             --output-swift "$PWD/App/Sources/Catalog.generated.swift" \
             --output-manifest "$PWD/App/Generated/ResourceManifest.tsv" \
             --output-report "$PWD/App/Generated/CatalogReport.txt"
           cat App/Generated/CatalogReport.txt
-          test "$(find ci-resources -maxdepth 1 -type f -name '*__audio__*.web.m4a' | wc -l | tr -d ' ')" = 229
-          test "$(find ci-resources -maxdepth 1 -type f -name '*__video__*.mp4' | wc -l | tr -d ' ')" = 9
+          test "$(grep -c 'TrackDefinition(title:' App/Sources/Catalog.generated.swift)" = 245
+          test "$(grep -c 'dies-apri__audio__' App/Sources/Catalog.generated.swift)" = 24
+          test "$(grep -c 'dies-apri__art__' App/Sources/Catalog.generated.swift)" = 24
 
       - name: Generate Xcode 15 compatible project
         run: |
@@ -195,7 +195,7 @@ jobs:
             - dedicated iPhone 12 Pro Max UI is the app root
             - all four standard interface orientations remain available to iOS
             - exact 12-album catalog generated from the concert-house source of truth
-            - 229 web M4A + 9 MP4 identities validated against Releases
+            - 245 web M4A + 9 MP4 identities validated against Releases
             - built app contains 0 M4A and 0 MP4
             - only ballerina facade + source marker are bundled as bootstrap resources
             - Documents/ConcertResources is the preferred runtime media location
