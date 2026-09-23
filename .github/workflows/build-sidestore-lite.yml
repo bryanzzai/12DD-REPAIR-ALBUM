@@ -137,10 +137,10 @@ jobs:
             --exclude='.github' \
             --exclude='delivery' \
             --exclude='ci-resources' \
-            --exclude='xcodebuild-sidestore-lite.log' \
+            --exclude='xcodebuild-ipad-air2.log' \
             ./ "$ROOT/"
 
-          cp xcodebuild-sidestore-lite.log "$ROOT/XCODEBUILD-SIDESTORE-LITE-GREEN.log"
+          cp xcodebuild-ipad-air2.log "$ROOT/XCODEBUILD-iPAD-AIR2-GREEN.log"
           cp SOURCE-SITE-COMMIT.txt "$ROOT/SOURCE-SITE-COMMIT.txt"
 
           cat > "$ROOT/OPEN-ME-FIRST.txt" <<'TXT'
