@@ -187,6 +187,47 @@ jobs:
           PY
           ls -lh delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite.ipa
 
+      - name: Package ready-to-open iPad Pro 12.9 Xcode 15.2 project
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY.zip
+          ROOT=delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY
+          mkdir -p "$ROOT"
+
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='delivery' \
+            --exclude='ci-resources' \
+            --exclude='xcodebuild-ipad-pro-12-9.log' \
+            --exclude='Payload' \
+            ./ "$ROOT/"
+
+          cp xcodebuild-ipad-pro-12-9.log "$ROOT/XCODEBUILD-iPAD-PRO-12.9-GREEN.log"
+          cp SOURCE-SITE-COMMIT.txt "$ROOT/SOURCE-SITE-COMMIT.txt"
+          cp effective-entitlements.plist "$ROOT/TROLLSTORE-LITE-ENTITLEMENTS.plist"
+
+          cat > "$ROOT/OPEN-ME-FIRST.txt" <<'TXT'
+          THE 12 DAY DANCER — IPAD PRO 12.9 TROLLSTORE LITE
+
+          This exact project generated a green unsigned arm64 IPA in GitHub Actions.
+          CI verified:
+            - 24 replacement Dies Apri tracks, in the supplied ZIP order
+            - exact dies-apri__audio__…web.m4a external-resource paths
+            - iPad-only deployment target, iPadOS 17.0 minimum
+            - embedded TrollStore Lite FileProvider entitlements
+            - 0 M4A and 0 MP4 concert-media files in the app bundle
+
+          The full concert library is intentionally external. Copy ConcertResources
+          to the app's Documents folder through the Files app after installation.
+          TXT
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$ROOT" \
+            delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY.zip
+          test -s delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY.zip
+
       - name: Upload iPad Pro 12.9 TrollStore Lite IPA
         uses: actions/upload-artifact@v4
         with:
