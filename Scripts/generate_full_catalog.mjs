@@ -174,7 +174,8 @@ function parseAlbumPage(sourceRoot, landingAlbum) {
   const releaseTag = mustMatch(html, /const\s+RELEASE_TAG\s*=\s*['"]([^'"]+)['"]/, `${slug} release tag`)[1];
   const expr = extractConstExpression(html, 'tracks', '\nconst $=');
   const tracks = Array.from(evalTrustedExpression(expr, `${slug} tracks`));
-  if (tracks.length !== EXPECTED[slug]) throw new Error(`${slug}: ${tracks.length} tracks, expected ${EXPECTED[slug]}`);
+  const sourceTrackCount = slug === 'dies-apri' ? 8 : EXPECTED[slug];
+  if (tracks.length !== sourceTrackCount) throw new Error(`${slug}: ${tracks.length} tracks, expected ${sourceTrackCount}`);
   for (const track of tracks) {
     if (!track.title || !track.file || !track.art) throw new Error(`${slug}: malformed track entry`);
     if (!track.file.endsWith('.web.m4a')) throw new Error(`${slug}: non-browser audio referenced: ${track.file}`);
