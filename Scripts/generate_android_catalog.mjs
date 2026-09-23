@@ -20,6 +20,33 @@ const EXPECTED = {
   'dies-akita': 9,
 };
 
+const DIES_APRI_REPLACEMENT_TRACKS = [
+  { title: "Bargain in Ruins [ IV ]", file: "Bargain in Ruins [ IV ].web.m4a" },
+  { title: "Bargain in Ruins [ V ] 110 BPM", file: "Bargain in Ruins [ V ] 110 BPM.web.m4a" },
+  { title: "God Only Knows [ I ]", file: "God Only Knows [ I ].web.m4a" },
+  { title: "God Only Knows [ II ]", file: "God Only Knows [ II ].web.m4a" },
+  { title: "God Only Knows [ III ]", file: "God Only Knows [ III ].web.m4a" },
+  { title: "God Only Knows [ IV ]", file: "God Only Knows [ IV ].web.m4a" },
+  { title: "God Only Knows [ V ]", file: "God Only Knows [ V ].web.m4a" },
+  { title: "God Only Knows [ VI ]", file: "God Only Knows [ VI ].web.m4a" },
+  { title: "God Only Knows [ VII ]", file: "God Only Knows [ VII ].web.m4a" },
+  { title: "Bachata Ballad", file: "Bachata Ballad.web.m4a" },
+  { title: "Bargain in Ruins [ I ] 110 BPM", file: "Bargain in Ruins [ I ] 110 BPM.web.m4a" },
+  { title: "Bargain in Ruins [ I ]", file: "Bargain in Ruins [ I ].web.m4a" },
+  { title: "Bargain in Ruins [ II ]", file: "Bargain in Ruins [ II ].web.m4a" },
+  { title: "Bargain in Ruins [ III ]", file: "Bargain in Ruins [ III ].web.m4a" },
+  { title: "Midnight in Blue [ II ]", file: "Midnight in Blue [ II ].web.m4a" },
+  { title: "Midnight in Blue [ III ]", file: "Midnight in Blue [ III ].web.m4a" },
+  { title: "Midnight in Blue [ IV ]", file: "Midnight in Blue [ IV ].web.m4a" },
+  { title: "Warm Echoes [ I ]", file: "Warm Echoes [ I ].web.m4a" },
+  { title: "Warm Echoes [ II ]", file: "Warm Echoes [ II ].web.m4a" },
+  { title: "Warm Static [ I ]", file: "Warm Static [ I ].web.m4a" },
+  { title: "Warm Static [ II ]", file: "Warm Static [ II ].web.m4a" },
+  { title: "House Ballad [ I ]", file: "House Ballad [ I ].web.m4a" },
+  { title: "House Ballad [ II ]", file: "House Ballad [ II ].web.m4a" },
+  { title: "Midnight in Blue [ I ]", file: "Midnight in Blue [ I ].web.m4a" },
+];
+
 const EXPECTED_ORDER = [
   'dies-iovis', 'dies-solis', 'dies-martis', 'dies-albini',
   'dies-tigris', 'dies-delfini', 'dies-canis', 'dies-felis',
@@ -140,6 +167,21 @@ const assetDir = path.resolve(a['asset-dir']);
 const sourceCommit = execFileSync('git', ['-C', sourceRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const rootHtml = fs.readFileSync(path.join(sourceRoot, 'index.html'), 'utf8');
 const albums = landing(rootHtml).map(x => parseAlbum(sourceRoot, x));
+const diesApri = albums.find(album => album.slug === 'dies-apri');
+if (!diesApri || diesApri.kind !== 'audio' || diesApri.tracks.length === 0) {
+  throw new Error('Dies Apri source album is unavailable for replacement.');
+}
+diesApri.tracks = DIES_APRI_REPLACEMENT_TRACKS.map(track => {
+  const art = track.file.replace(/\.web\.m4a$/, '.png');
+  if (art === track.file || !art.endsWith('.png')) {
+    throw new Error(`Dies Apri artwork name could not be derived from: ${track.file}`);
+  }
+  return { ...track, art };
+});
+if (new Set(diesApri.tracks.map(track => track.art)).size !== DIES_APRI_REPLACEMENT_TRACKS.length) {
+  throw new Error('Dies Apri replacement tracks must have one distinct artwork file per track.');
+}
+
 const rawBase = `https://raw.githubusercontent.com/bryanzzai/bryanmackayne/${sourceCommit}`;
 const resources = [];
 
@@ -191,7 +233,7 @@ for (const album of albums) {
   }
 }
 
-if (audioCount !== 229 || videoCount !== 9 || artCount !== 229) {
+if (audioCount !== 245 || videoCount !== 9 || artCount !== 245) {
   throw new Error(`Catalog count mismatch audio=${audioCount} video=${videoCount} art=${artCount}`);
 }
 
@@ -226,7 +268,7 @@ fs.writeFileSync(outputManifest, manifest);
 
 console.log(`Android catalog source: ${sourceCommit}`);
 console.log(`Albums: ${cleanAlbums.length}/12`);
-console.log(`Audio: ${audioCount}/229`);
+console.log(`Audio: ${audioCount}/245`);
 console.log(`Video: ${videoCount}/9`);
-console.log(`Artwork: ${artCount}/229`);
+console.log(`Artwork: ${artCount}/245`);
 console.log(`Manifest resources: ${resources.length}`);
