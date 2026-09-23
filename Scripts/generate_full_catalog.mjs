@@ -272,8 +272,18 @@ const diesApri = albums.find(album => album.slug === 'dies-apri');
 if (!diesApri || diesApri.kind !== 'audio' || diesApri.tracks.length === 0) {
   throw new Error('Dies Apri source album is unavailable for replacement.');
 }
-const diesApriArtwork = diesApri.tracks[0].art;
-diesApri.tracks = DIES_APRI_REPLACEMENT_TRACKS.map(track => ({ ...track, art: diesApriArtwork }));
+diesApri.tracks = DIES_APRI_REPLACEMENT_TRACKS.map(track => {
+  const artwork = track.file.replace(/\.web\.m4a$/, '.png');
+  if (artwork === track.file || !artwork.endsWith('.png')) {
+    throw new Error(`Dies Apri artwork name could not be derived from: ${track.file}`);
+  }
+  return { ...track, art: artwork };
+});
+
+const diesApriArtworkNames = new Set(diesApri.tracks.map(track => track.art));
+if (diesApriArtworkNames.size !== DIES_APRI_REPLACEMENT_TRACKS.length) {
+  throw new Error('Dies Apri replacement tracks must have one distinct artwork file per track.');
+}
 
 const resources = new Map();
 function addResource(kind, album, bundle, url, localPath) {
