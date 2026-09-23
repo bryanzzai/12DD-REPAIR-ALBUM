@@ -234,3 +234,12 @@ jobs:
           if-no-files-found: error
           compression-level: 6
           retention-days: 30
+
+      - name: Upload iPad Pro 12.9 Xcode project
+        uses: actions/upload-artifact@v4
+        with:
+          name: The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY
+          path: delivery/The-12-Day-Dancer-iPad-Pro-12.9-TrollStore-Lite-Xcode15.2-READY.zip
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 30
